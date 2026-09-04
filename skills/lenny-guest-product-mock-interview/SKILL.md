@@ -18,9 +18,10 @@ interview: grilling the candidate exactly like the guest would.
 
 **Works with:** ChatGPT, Claude, Hermes, Codex, or any AI agent.
 
-**Transcript source:** [ChatPRD/lennys-podcast-transcripts](https://github.com/ChatPRD/lennys-podcast-transcripts)
-(303 episodes, 25MB total, all markdown with YAML frontmatter: clone alongside
-this skill into your project directory).
+**Transcript source:** [ChatPRD/lennys-podcast-transcripts](https://github.com/ChatPRD/lennys-podcast-transcripts),
+303 episodes of markdown with YAML frontmatter. Nothing to clone: an interview
+reads one transcript, and the bundled index resolves the matched guest to it.
+See Getting the Transcript.
 
 ---
 
