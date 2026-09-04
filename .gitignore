@@ -1,3 +1,6 @@
 .DS_Store
 __pycache__/
 *.pyc
+
+# The transcript library is cloned alongside the skill, never committed here.
+lennys-podcast-transcripts/
