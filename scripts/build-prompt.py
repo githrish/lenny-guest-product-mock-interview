@@ -25,39 +25,40 @@ ZIP = ROOT / "dist" / f"{NAME}.zip"
 
 RAW = f"https://raw.githubusercontent.com/githrish/{NAME}/main/skills/{NAME}"
 TRANSCRIPTS = "https://github.com/ChatPRD/lennys-podcast-transcripts"
+TRANSCRIPTS_RAW = "https://raw.githubusercontent.com/ChatPRD/lennys-podcast-transcripts/main"
 
 # Prepended to the skill body in the pasted version only. The installed skill has
 # the index and the script on disk, so it needs none of this.
 PASTE_MODE = f"""## Running this as a pasted prompt
 
-You are reading this in a chat window, not from an installed skill folder. That
-means two things the skill normally relies on are absent, and you must not
-pretend to use them.
+You are reading this in a chat window, not from an installed skill folder. The
+skill body below assumes two files are on disk that are not. Do not pretend to
+use them.
 
 **`scripts/find_guest.py` is not available.** Do not claim to run it. Match the
 guest from the category lists near the end of this document, or ask the user to
 name one.
 
 **`references/episode-index.json` is not on disk.** It indexes all 303 episodes
-with guest, title, date, keywords and YouTube link.
+with guest, title, date, keywords, YouTube link, and the `slug` used to build a
+transcript URL. If you can browse the web, fetch it:
 
-If you can browse the web, fetch what you need and work from the real material:
+`{RAW}/references/episode-index.json`
 
-- Episode index: `{RAW}/references/episode-index.json`
-- Transcripts: `{TRANSCRIPTS}`
+Transcripts work exactly as described below. Fetch the one matched guest from:
 
-If you cannot browse the web, say so in one line before the interview starts,
-then run on the guest lists in this document alone. In that mode you must not
-quote a guest or attribute a framework to them as though it came from their
-episode. Rule 3 under Important Notes still holds: do not guess what a guest
-said. Where the feedback template calls for a direct quote from a transcript,
-name the framework and say the quote is unavailable in this mode.
+`{TRANSCRIPTS_RAW}/episodes/<slug>/transcript.md`
 
-For the full experience, install the skill and clone the transcript library:
+If you cannot browse the web at all, say so in one line before the interview
+starts, then run on the guest lists in this document alone. In that mode you must
+not quote a guest or attribute a framework to them as though it came from their
+episode. Where the feedback template calls for a direct quote, name the framework
+and say the quote is unavailable in this mode.
+
+To skip all of this, install the skill:
 
 ```bash
-git clone https://github.com/githrish/{NAME}.git
-git clone {TRANSCRIPTS}.git
+npx skills add githrish/{NAME} -g -y
 ```
 
 ---
@@ -87,6 +88,7 @@ def build_prompt():
         "",
         "Paste everything below into Claude, ChatGPT, Gemini, or any capable model.",
         "Attach your resume if you have one. Then say which company or guest you want.",
+        "Nothing to clone. It fetches the one transcript it needs.",
         "",
         "Not affiliated with, endorsed by, or sponsored by Lenny's Podcast or Lenny",
         "Rachitsky. Transcripts are maintained separately by ChatPRD.",

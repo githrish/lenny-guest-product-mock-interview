@@ -6,6 +6,7 @@
 
 Paste everything below into Claude, ChatGPT, Gemini, or any capable model.
 Attach your resume if you have one. Then say which company or guest you want.
+Nothing to clone. It fetches the one transcript it needs.
 
 Not affiliated with, endorsed by, or sponsored by Lenny's Podcast or Lenny
 Rachitsky. Transcripts are maintained separately by ChatPRD.
@@ -14,34 +15,34 @@ Rachitsky. Transcripts are maintained separately by ChatPRD.
 
 ## Running this as a pasted prompt
 
-You are reading this in a chat window, not from an installed skill folder. That
-means two things the skill normally relies on are absent, and you must not
-pretend to use them.
+You are reading this in a chat window, not from an installed skill folder. The
+skill body below assumes two files are on disk that are not. Do not pretend to
+use them.
 
 **`scripts/find_guest.py` is not available.** Do not claim to run it. Match the
 guest from the category lists near the end of this document, or ask the user to
 name one.
 
 **`references/episode-index.json` is not on disk.** It indexes all 303 episodes
-with guest, title, date, keywords and YouTube link.
+with guest, title, date, keywords, YouTube link, and the `slug` used to build a
+transcript URL. If you can browse the web, fetch it:
 
-If you can browse the web, fetch what you need and work from the real material:
+`https://raw.githubusercontent.com/githrish/lenny-guest-product-mock-interview/main/skills/lenny-guest-product-mock-interview/references/episode-index.json`
 
-- Episode index: `https://raw.githubusercontent.com/githrish/lenny-guest-product-mock-interview/main/skills/lenny-guest-product-mock-interview/references/episode-index.json`
-- Transcripts: `https://github.com/ChatPRD/lennys-podcast-transcripts`
+Transcripts work exactly as described below. Fetch the one matched guest from:
 
-If you cannot browse the web, say so in one line before the interview starts,
-then run on the guest lists in this document alone. In that mode you must not
-quote a guest or attribute a framework to them as though it came from their
-episode. Rule 3 under Important Notes still holds: do not guess what a guest
-said. Where the feedback template calls for a direct quote from a transcript,
-name the framework and say the quote is unavailable in this mode.
+`https://raw.githubusercontent.com/ChatPRD/lennys-podcast-transcripts/main/episodes/<slug>/transcript.md`
 
-For the full experience, install the skill and clone the transcript library:
+If you cannot browse the web at all, say so in one line before the interview
+starts, then run on the guest lists in this document alone. In that mode you must
+not quote a guest or attribute a framework to them as though it came from their
+episode. Where the feedback template calls for a direct quote, name the framework
+and say the quote is unavailable in this mode.
+
+To skip all of this, install the skill:
 
 ```bash
-git clone https://github.com/githrish/lenny-guest-product-mock-interview.git
-git clone https://github.com/ChatPRD/lennys-podcast-transcripts.git
+npx skills add githrish/lenny-guest-product-mock-interview -g -y
 ```
 
 ---
@@ -500,14 +501,45 @@ python3 scripts/find_guest.py --keyword "hiring"
 
 ---
 
-## Reading a Transcript Efficiently (Latency-Optimized)
+## Getting the Transcript
 
-Transcripts are 8K-80K characters. Speed is critical: every sequential tool call
-adds a round-trip. Batch reads aggressively.
+An interview needs exactly one transcript: the guest you matched in Step 3. The
+library holds 303 of them. Do not fetch or clone all of them to read one.
 
-### One-Shot Load (Preferred)
+Every episode is a single file at `episodes/<slug>/transcript.md`, and
+`references/episode-index.json` already carries the exact `slug` for all 303. So
+the guest match hands you the path directly. Never guess a slug, and never search
+the library for one.
 
-Fire all transcript reads in a SINGLE turn — parallel, not sequential:
+### Where to read it from
+
+Try these in order and stop at the first that works.
+
+**1. Local library.** If `lennys-podcast-transcripts/` is on disk next to the
+skill, read from it. Fastest, and it works offline.
+
+```
+lennys-podcast-transcripts/episodes/<slug>/transcript.md
+```
+
+**2. Fetch the one file.** If there is no local library and you can reach the
+web, fetch just this guest, around 87KB:
+
+```
+https://raw.githubusercontent.com/ChatPRD/lennys-podcast-transcripts/main/episodes/<slug>/transcript.md
+```
+
+Fetch only the matched guest. If the user later switches guests, fetch that one
+then. Do not pre-fetch a library you will not read.
+
+**3. Neither available.** Say so in one line and follow the fallback in
+Important Notes. Do not invent a persona.
+
+### Load it in one turn
+
+Transcripts are 8K-80K characters. Every sequential tool call adds a round-trip,
+so batch aggressively. Reading locally, fire all reads in a SINGLE turn, parallel
+rather than sequential:
 
 ```
 # All three calls go out together. No waiting for one to finish before the next.
@@ -521,8 +553,9 @@ For longer transcripts (800+ lines), add a fourth read in the same batch:
 read_file(path="episodes/<slug>/transcript.md", offset=630, limit=300)
 ```
 
-This loads 500-900 lines in ONE turn instead of 4-5 turns. Do NOT read
-frontmatter, wait for the result, then read body. Batch everything.
+This loads 500-900 lines in ONE turn instead of 4-5 turns. Fetching over the web
+is one request for the whole file, so there is nothing to batch: read it once and
+keep it for the rest of the session.
 
 ### Skip Keyword Search
 
@@ -541,32 +574,41 @@ From the loaded transcript, pull:
 
 ### Anti-Patterns (These Waste Turns)
 
+- ❌ Cloning or fetching the whole library to read one guest
 - ❌ Read frontmatter, wait, then search for keywords, wait, then read body
 - ❌ search_files or grep for "metric|framework|hire" — keywords are in the index
 - ❌ Read one chunk at a time across 4-5 sequential turns
 - ❌ Re-read the same transcript for more persona data later — batch it upfront
+- ❌ Re-fetching a transcript you already loaded this session
 
 ---
 
 ## Setup
 
-The transcript library is the one hard requirement. It is a separate repo of 303
-episodes, around 25MB, and this skill reads from it directly. Without it the
-guest personas cannot be built from real material.
+Install the skill. That is the whole requirement.
 
 ```bash
-# Clone this skill
-git clone https://github.com/githrish/lenny-guest-product-mock-interview.git
+npx skills add githrish/lenny-guest-product-mock-interview -g -y
+```
 
-# Clone the transcript library (303 episodes, ~25MB)
+Transcripts are fetched one at a time, for the matched guest only, at the point
+the interview needs them. Nothing else to clone.
+
+### Optional: the full library
+
+Clone all 303 transcripts if you want offline use, or you run many interviews and
+would rather not fetch each time. The skill prefers local files whenever it finds
+them.
+
+```bash
 git clone https://github.com/ChatPRD/lennys-podcast-transcripts.git
 ```
 
-Place them side by side:
+Place it next to the skill:
 
 ```
 your-project/
-├── lennys-podcast-transcripts/                  # 303 transcripts
+├── lennys-podcast-transcripts/                  # optional, 303 transcripts
 └── lenny-guest-product-mock-interview/
     └── skills/lenny-guest-product-mock-interview/
         ├── SKILL.md
@@ -574,12 +616,8 @@ your-project/
         └── scripts/find_guest.py
 ```
 
-Point your AI agent at `SKILL.md`. If you installed via a skills folder or a ZIP
-upload, the skill directory is already in place and only the transcript library
-needs cloning.
-
-If the transcripts are missing, say so in one line before the interview starts
-and follow the fallback in Important Notes rather than inventing quotes.
+With neither local files nor web access, say so before the interview starts and
+follow the fallback in Important Notes rather than inventing quotes.
 
 ---
 
@@ -632,9 +670,11 @@ and follow the fallback in Important Notes rather than inventing quotes.
 
 3. **Use the actual transcripts.** Don't guess what a guest would say: find it in their transcript. If they didn't cover something, acknowledge it.
 
-   **If the transcript library is missing**, do not silently improvise a persona.
-   Tell the user in one line that transcripts are unavailable and that the
-   interview will run on the episode index and general knowledge. Then hold to
+   **If you can reach neither a local library nor the raw URL**, do not silently
+   improvise a persona. Tell the user in one line that transcripts are
+   unavailable and that the interview will run on the episode index and general
+   knowledge. A missing local clone alone is not this case: fetch the one
+   transcript instead. Then hold to
    this for the rest of the session: no direct quotes, no framework attributed to
    a guest as something they said on the show. Where the feedback template asks
    for a quote, name the framework and mark the quote unavailable.
@@ -708,5 +748,10 @@ MIT licensed. See LICENSE in the repository.
 
 Not affiliated with, endorsed by, or sponsored by Lenny's Podcast or Lenny
 Rachitsky. Guest names are used to describe whose publicly published episode a
-persona is built from. Transcripts are maintained separately by ChatPRD at
-https://github.com/ChatPRD/lennys-podcast-transcripts.
+persona is built from.
+
+Transcripts are not part of this repository and are not redistributed by it. They
+are maintained by ChatPRD at
+https://github.com/ChatPRD/lennys-podcast-transcripts, which at the time of
+writing publishes no licence. This skill reads them from source at runtime;
+anyone relying on them should check that repository for terms themselves.
