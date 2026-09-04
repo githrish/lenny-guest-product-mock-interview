@@ -1,0 +1,39 @@
+name: Build prompt
+
+# The skill is the source of truth. Whenever it changes, regenerate the
+# single-file prompt and the ZIP so the copy-paste and download versions never
+# drift from the installed one.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'scripts/build-prompt.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate dist/
+        run: python3 scripts/build-prompt.py
+
+      - name: Commit if changed
+        run: |
+          if [ -n "$(git status --porcelain dist/)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add dist/
+            git commit -m "Regenerate prompt and zip from skill"
+            git push
+          else
+            echo "No change to dist/"
+          fi

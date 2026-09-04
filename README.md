@@ -1,5 +1,6 @@
-# Interviewed by Lenny's Guests: PM Mock Interviews
+# PM Mock Interviews with Lenny's Podcast Guests
 
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
 [![Platforms](https://img.shields.io/badge/works%20with-ChatGPT%20%7C%20Claude%20%7C%20Hermes%20%7C%20Codex-blue)]()
 
 **Get interviewed BY Lenny's Podcast guests. Not just study their advice.**
@@ -12,37 +13,50 @@ your growth numbers. April Dunford makes you defend your positioning.
 built from their actual transcripts. Works with ChatGPT, Claude, Hermes,
 Codex, or any AI agent that loads a SKILL.md.
 
-## Install
+## What you need first
 
-Pick your platform:
+This skill reads a separate transcript library: 303 episodes, around 25MB,
+maintained by ChatPRD. It is the one hard requirement, and it is not bundled
+here. Clone it alongside the skill:
 
-### Hermes Agent
 ```bash
-hermes skills install https://raw.githubusercontent.com/githrish/lenny-guest-list/main/SKILL.md
-```
-Or add the repo as a skill source:
-```bash
-hermes skills tap add githrish/lenny-guest-list
-```
-
-### ChatGPT
-Upload `SKILL.md` as a custom GPT instruction file or attach it to your
-project. The transcript library must be accessible.
-
-### Claude
-Add `SKILL.md` to your project context. Claude Code reads it alongside
-`CLAUDE.md`. Place the transcript library in the same parent directory.
-
-### Codex CLI
-Place `SKILL.md` in your project directory. Codex auto-loads markdown
-skill files from the project root.
-
-### Manual (any platform)
-```bash
-git clone https://github.com/githrish/lenny-guest-list.git
 git clone https://github.com/ChatPRD/lennys-podcast-transcripts.git
 ```
-Point your AI agent to `lenny-guest-list/SKILL.md`.
+
+Without it the skill still runs, but it will tell you transcripts are missing
+and will not quote a guest or attribute a framework to their episode.
+
+## Install
+
+### Download the skill
+
+Grab [`dist/lenny-guest-product-mock-interview.zip`](dist/lenny-guest-product-mock-interview.zip)
+and drop it into any skills folder. Works with Claude, Claude Code, Codex,
+Cursor and anything else that reads a skills directory. In claude.ai it lives
+under Settings, then Capabilities, then Skills.
+
+### CLI
+
+```bash
+npx skills add githrish/lenny-guest-product-mock-interview -g -y
+```
+
+### Copy the prompt
+
+[`dist/prompt.md`](dist/prompt.md) is the whole skill as one pasteable file.
+Paste it into ChatGPT, Claude, Gemini or any capable model. It is generated
+from `skills/`, so it never drifts from the installed version. It opens by
+telling the agent which local files it does not have, so it does not pretend
+to run the search script.
+
+### Manual
+
+```bash
+git clone https://github.com/githrish/lenny-guest-product-mock-interview.git
+git clone https://github.com/ChatPRD/lennys-podcast-transcripts.git
+```
+
+Point your agent at `skills/lenny-guest-product-mock-interview/SKILL.md`.
 
 ## Demo
 
@@ -87,6 +101,22 @@ Technical / System Design, Behavioral, Estimation, GTM / Product Marketing
 | Growth & Metrics | Adam Fishman, Sean Ellis, Crystal Widjaja |
 | Leadership | Claire Hughes Johnson, Ben Horowitz, Bret Taylor |
 
+## Repository layout
+
+```
+skills/lenny-guest-product-mock-interview/
+├── SKILL.md                         # the skill, and the source of truth
+├── references/episode-index.json    # all 303 episodes, indexed
+└── scripts/find_guest.py            # guest lookup by name, company, round, keyword
+dist/
+├── prompt.md                        # generated single-file prompt
+└── lenny-guest-product-mock-interview.zip
+scripts/build-prompt.py              # regenerates dist/ from skills/
+```
+
+Edit the skill, never `dist/`. CI regenerates `dist/` on every push that
+touches `skills/`.
+
 ## Requirements
 
 - A clone of [lennys-podcast-transcripts](https://github.com/ChatPRD/lennys-podcast-transcripts) (303 transcripts, ~25MB)
@@ -97,3 +127,14 @@ Technical / System Design, Behavioral, Estimation, GTM / Product Marketing
 
 This skill is open source. The transcript library is maintained separately
 at [ChatPRD/lennys-podcast-transcripts](https://github.com/ChatPRD/lennys-podcast-transcripts).
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
+
+## Disclaimer
+
+Not affiliated with, endorsed by, or sponsored by Lenny's Podcast or Lenny
+Rachitsky. Guest names are used to describe whose publicly published episode a
+given persona is built from. Transcripts are the work of ChatPRD and are used
+under the terms of their repository.
